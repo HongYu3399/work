@@ -10,34 +10,49 @@ class Database {
         this.syncQueue = [];
         this.isOnline = navigator.onLine;
         
-        // 監聽網路狀態
-        window.addEventListener('online', () => {
-            this.isOnline = true;
-            this.syncOfflineData();
-            // 添加上線日誌
-            this.addLog('connection_status', {
-                status: 'online',
-                timestamp: new Date().toISOString()
-            });
-        });
-        
-        window.addEventListener('offline', () => {
-            this.isOnline = false;
-            // 添加離線日誌
-            this.addLog('connection_status', {
-                status: 'offline',
-                timestamp: new Date().toISOString()
-            });
-        });
+        // 延遲初始化
+        this.initialize();
+    }
 
-        // 添加初始化日誌
-        this.addLog('system_init', {
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            language: navigator.language,
-            timestamp: new Date().toISOString(),
-            version: '1.0.0'  // 添加版本號
-        });
+    // 新增初始化方法
+    async initialize() {
+        try {
+            // 測試連接
+            const { data, error } = await this.supabase.from('schedules').select('count');
+            if (!error) {
+                console.log('Supabase connected successfully');
+                
+                // 添加初始化日誌
+                await this.addLog('system_init', {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    timestamp: new Date().toISOString(),
+                    version: '1.0.0'
+                });
+
+                // 設置網路狀態監聽器
+                window.addEventListener('online', async () => {
+                    this.isOnline = true;
+                    await this.syncOfflineData();
+                    await this.addLog('connection_status', {
+                        status: 'online',
+                        timestamp: new Date().toISOString()
+                    });
+                });
+                
+                window.addEventListener('offline', async () => {
+                    this.isOnline = false;
+                    await this.addLog('connection_status', {
+                        status: 'offline',
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Error initializing database:', error);
+            this.isOnline = false;
+        }
     }
 
     // 獲取班表資料

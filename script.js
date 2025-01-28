@@ -26,18 +26,21 @@ class Calendar {
         this.initializeShiftType();
         this.db = db;
         
-        // 添加日曆初始化日誌
-        this.db.addLog('calendar_init', {
-            year: this.currentYear,
-            month: this.currentMonth,
-            timestamp: new Date().toISOString()
-        });
-        
         this.loadData();
     }
 
     async loadData() {
         try {
+            // 等待資料庫初始化完成
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 添加日曆初始化日誌
+            await this.db.addLog('calendar_init', {
+                year: this.currentYear,
+                month: this.currentMonth,
+                timestamp: new Date().toISOString()
+            });
+            
             // 載入當月資料
             const schedules = await this.db.getSchedules(this.currentYear, this.currentMonth + 1);
             
@@ -65,7 +68,6 @@ class Calendar {
             this.updateStats();
         } catch (error) {
             console.error('Error loading data:', error);
-            // 如果載入失敗，使用本地資料
             this.renderCalendar();
             this.updateStats();
         }
