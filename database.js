@@ -81,6 +81,14 @@ class Database {
                 .upsert(scheduleRecord);
 
             if (error) throw error;
+
+            // 添加日誌
+            await this.addLog('save_schedule', {
+                date,
+                scheduleData,
+                timestamp: new Date().toISOString()
+            });
+
             return { success: true, data };
 
         } catch (error) {
@@ -110,6 +118,13 @@ class Database {
                 .eq('date', date);
 
             if (error) throw error;
+
+            // 添加日誌
+            await this.addLog('delete_schedule', {
+                date,
+                timestamp: new Date().toISOString()
+            });
+
             return { success: true };
 
         } catch (error) {
@@ -158,6 +173,13 @@ class Database {
                 .upsert(presetData);
 
             if (error) throw error;
+
+            // 添加日誌
+            await this.addLog('save_preset', {
+                presetData,
+                timestamp: new Date().toISOString()
+            });
+
             return { success: true, data };
 
         } catch (error) {
@@ -202,6 +224,26 @@ class Database {
             }
         }
         return schedules;
+    }
+
+    // 添加日誌
+    async addLog(action, details) {
+        try {
+            const { data, error } = await this.supabase
+                .from('logs')
+                .insert([
+                    {
+                        action,
+                        details
+                    }
+                ]);
+
+            if (error) throw error;
+            return { success: true, data };
+        } catch (error) {
+            console.error('Error adding log:', error);
+            return { success: false, error };
+        }
     }
 }
 
