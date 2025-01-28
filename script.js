@@ -2,6 +2,10 @@ import { db } from './database.js';
 
 class Calendar {
     constructor() {
+        // 先初始化資料庫
+        this.db = db;
+        
+        // 其他初始化
         this.date = new Date();
         this.currentMonth = this.date.getMonth();
         this.currentYear = this.date.getFullYear();
@@ -13,20 +17,34 @@ class Calendar {
             { start: '13:00', end: '22:00', breakTime: '60', color: '#FFDAB7' },
             { start: '18:00', end: '23:00', breakTime: '60', color: '#FFE4B7' }
         ];
-        this.initializeElements();
-        this.addEventListeners();
-        this.initializeShiftButtons();
-        this.renderCalendar();
-        this.initializeStats();
-        this.initializePresets();
-        this.initializeSalarySetting();
-        this.initializeDetailModal();
-        this.initializeDeleteButton();
-        this.initializeExport();
-        this.initializeShiftType();
-        this.db = db;
-        
-        this.loadData();
+
+        // 等待 DOM 完全載入後再初始化 UI
+        this.initializeUI();
+    }
+
+    async initializeUI() {
+        try {
+            // 初始化 UI 元素
+            this.initializeElements();
+            this.addEventListeners();
+            this.initializeShiftButtons();
+            this.initializeStats();
+            this.initializePresets();
+            this.initializeSalarySetting();
+            this.initializeDetailModal();
+            this.initializeDeleteButton();
+            this.initializeExport();
+            this.initializeShiftType();
+
+            // 載入資料
+            await this.loadData();
+            
+            // 渲染日曆
+            this.renderCalendar();
+            this.updateStats();
+        } catch (error) {
+            console.error('Error initializing UI:', error);
+        }
     }
 
     async loadData() {
@@ -349,11 +367,18 @@ class Calendar {
                     timeInfo.textContent = '休假';
                     timeInfo.style.backgroundColor = '#E0E0E0';
                 } else {
-                    const { startTime, endTime, shiftColor } = this.scheduleData[dateKey];
-                    const formattedStart = startTime.replace(':', '');
-                    const formattedEnd = endTime.replace(':', '');
-                    timeInfo.textContent = `${formattedStart}~${formattedEnd}`;
-                    timeInfo.style.backgroundColor = shiftColor;
+                    const scheduleData = this.scheduleData[dateKey];
+                    // 檢查必要的屬性是否存在
+                    if (scheduleData.startTime && scheduleData.endTime) {
+                        const formattedStart = scheduleData.startTime.split(':').slice(0, 2).join('');
+                        const formattedEnd = scheduleData.endTime.split(':').slice(0, 2).join('');
+                        timeInfo.textContent = `${formattedStart}~${formattedEnd}`;
+                        timeInfo.style.backgroundColor = scheduleData.shiftColor || '#FFB7B7';
+                    } else {
+                        console.warn(`Missing time data for ${dateKey}:`, scheduleData);
+                        timeInfo.textContent = '時間未設定';
+                        timeInfo.style.backgroundColor = '#FFB7B7';
+                    }
                 }
                 
                 content.appendChild(timeInfo);
@@ -952,7 +977,7 @@ class Calendar {
     }
 }
 
-// 初始化日曆
+// 等待 DOM 完全載入後再初始化日曆
 document.addEventListener('DOMContentLoaded', () => {
     new Calendar();
 }); 
