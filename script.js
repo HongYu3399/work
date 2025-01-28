@@ -25,6 +25,14 @@ class Calendar {
         this.initializeExport();
         this.initializeShiftType();
         this.db = db;
+        
+        // 添加日曆初始化日誌
+        this.db.addLog('calendar_init', {
+            year: this.currentYear,
+            month: this.currentMonth,
+            timestamp: new Date().toISOString()
+        });
+        
         this.loadData();
     }
 
@@ -378,6 +386,15 @@ class Calendar {
             this.currentMonth = 11;
             this.currentYear--;
         }
+        
+        // 添加月份切換日誌
+        this.db.addLog('month_change', {
+            direction: 'previous',
+            newYear: this.currentYear,
+            newMonth: this.currentMonth,
+            timestamp: new Date().toISOString()
+        });
+        
         this.renderCalendar();
         this.updateStats();
     }
@@ -388,6 +405,15 @@ class Calendar {
             this.currentMonth = 0;
             this.currentYear++;
         }
+        
+        // 添加月份切換日誌
+        this.db.addLog('month_change', {
+            direction: 'next',
+            newYear: this.currentYear,
+            newMonth: this.currentMonth,
+            timestamp: new Date().toISOString()
+        });
+        
         this.renderCalendar();
         this.updateStats();
     }

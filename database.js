@@ -14,9 +14,29 @@ class Database {
         window.addEventListener('online', () => {
             this.isOnline = true;
             this.syncOfflineData();
+            // 添加上線日誌
+            this.addLog('connection_status', {
+                status: 'online',
+                timestamp: new Date().toISOString()
+            });
         });
+        
         window.addEventListener('offline', () => {
             this.isOnline = false;
+            // 添加離線日誌
+            this.addLog('connection_status', {
+                status: 'offline',
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        // 添加初始化日誌
+        this.addLog('system_init', {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            timestamp: new Date().toISOString(),
+            version: '1.0.0'  // 添加版本號
         });
     }
 
