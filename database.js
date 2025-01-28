@@ -264,19 +264,30 @@ class Database {
     // 添加日誌
     async addLog(action, details) {
         try {
+            if (!this.isOnline) {
+                console.log('Offline, skipping log:', action, details);
+                return { success: true, offline: true };
+            }
+
+            console.log('Adding log:', action, details);
             const { data, error } = await this.supabase
                 .from('logs')
                 .insert([
                     {
                         action,
-                        details
+                        details: JSON.stringify(details)  // 確保 details 是字符串
                     }
                 ]);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Error adding log:', error);
+                throw error;
+            }
+
+            console.log('Log added successfully:', data);
             return { success: true, data };
         } catch (error) {
-            console.error('Error adding log:', error);
+            console.error('Error in addLog:', error);
             return { success: false, error };
         }
     }
