@@ -1,0 +1,680 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.calendar {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.weekdays {
+    display: flex;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+}
+
+.weekdays div {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #ddd;
+}
+
+.day {
+    background-color: white;
+    padding: 10px;
+    min-height: 100px;
+    cursor: pointer;
+    position: relative;
+}
+
+.day:hover {
+    background-color: #f8f9fa;
+}
+
+.day.today {
+    background-color: #e8f5e9;
+}
+
+.day.other-month {
+    color: #ccc;
+    background-color: #fafafa;
+}
+
+/* 日期內容布局 */
+.day-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.date-number {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.time-info {
+    font-size: 14px;
+    color: #000000;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+/* 加號按鈕樣式 */
+.add-time-btn {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.add-time-btn:hover {
+    background-color: #45a049;
+}
+
+/* 時間列表樣式 */
+.time-list {
+    margin-top: 25px;
+    text-align: left;
+    font-size: 12px;
+}
+
+.time-item {
+    margin: 2px 0;
+    padding: 2px 4px;
+    background-color: #e8f5e9;
+    border-radius: 2px;
+}
+
+/* 模態框樣式 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;  /* 調整位置更靠上 */
+    padding: 30px;     /* 增加內邊距 */
+    width: 90%;
+    max-width: 500px;  /* 增加最大寬度 */
+    border-radius: 8px;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;  /* 增加與內容的間距 */
+    padding-bottom: 15px; /* 添加下邊距 */
+    border-bottom: 1px solid #eee;  /* 添加分隔線 */
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    color: #333;
+}
+
+.close {
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 0 10px;  /* 添加左右內邊距 */
+}
+
+/* 時間輸入區域樣式 */
+.time-input {
+    margin-bottom: 25px;  /* 增加底部間距 */
+    display: flex;
+    align-items: center;
+}
+
+.time-input label {
+    min-width: 120px;  /* 調整標籤寬度 */
+    color: #333;
+    font-weight: 500;
+}
+
+.time-spinner {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.time-number {
+    width: 100px;     /* 增加輸入框寬度 */
+    height: 45px;     /* 增加輸入框高度 */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 18px;  /* 增加字體大小 */
+    background-color: #f8f9fa;
+}
+
+.time-number:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background-color: white;
+}
+
+.time-spinner span {
+    font-size: 24px;
+    color: #666;
+    padding: 0 5px;
+}
+
+/* 休息時間輸入框樣式 */
+#breakTime {
+    width: 100px;
+    height: 45px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 18px;
+    background-color: #f8f9fa;
+}
+
+/* 顏色選擇區域樣式 */
+.shift-type {
+    margin-top: 30px;  /* 增加與上方元素的間距 */
+    padding-top: 20px;
+    border-top: 1px solid #eee;  /* 添加分隔線 */
+}
+
+.color-presets {
+    margin-top: 10px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.color-preset {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+/* 底部按鈕區域 */
+.modal-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.right-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.delete-btn {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border: none !important;
+}
+
+.delete-btn:hover {
+    background-color: #c82333 !important;
+}
+
+/* 當沒有班表時隱藏刪除按鈕 */
+.delete-btn.hidden {
+    display: none;
+}
+
+#cancelTime {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+#cancelTime:hover {
+    background-color: #e9ecef;
+}
+
+/* 統計面板樣式 */
+.stats-panel {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.stats-panel h2 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stats-item {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.stats-item label {
+    display: block;
+    color: #666;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.stats-item .value {
+    font-size: 24px;
+    color: #333;
+    font-weight: 500;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.input-group span {
+    color: #666;
+    font-size: 16px;
+}
+
+.input-group input {
+    width: 100px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+/* 修改快捷選擇樣式 */
+.quick-presets {
+    margin-top: 30px;  /* 增加與上方元素的間距 */
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.quick-presets h4 {
+    color: #666;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.preset-buttons {
+    display: flex;
+    flex-wrap: wrap;  /* 允許按鈕換行 */
+    gap: 8px;  /* 按鈕之間的間距 */
+    margin-top: 8px;
+}
+
+/* 修改快捷時間按鈕樣式 */
+.preset-btn {
+    width: auto;  /* 改為自適應寬度 */
+    height: 35px; /* 減小高度 */
+    padding: 0 30px 0 12px; /* 左側較小間距，右側預留刪除按鈕空間 */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    color: #333;
+    font-size: 14px;  /* 減小字體 */
+    text-align: left;  /* 文字靠左對齊 */
+    cursor: pointer;
+    margin-bottom: 8px;
+    position: relative;
+    display: inline-flex;  /* 改為行內彈性布局 */
+    align-items: center;
+}
+
+.preset-btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+/* 修改刪除按鈕樣式 */
+.delete-preset {
+    position: absolute;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #ff4444;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.preset-btn:hover .delete-preset {
+    opacity: 1;
+}
+
+/* 移除之前的 preset-modal 樣式，使用統一的 modal-content 樣式 */
+.cancel-btn {
+    background-color: #f8f9fa !important;
+    color: #333 !important;
+    border: 1px solid #ddd !important;
+}
+
+.cancel-btn:hover {
+    background-color: #e9ecef !important;
+}
+
+/* 修改薪資設定相關樣式 */
+.salary-setting {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.salary-type {
+    flex: 1;
+}
+
+.salary-type select {
+    width: 100%;
+    height: 45px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.salary-type select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.custom-salary-input {
+    flex: 1;
+}
+
+.custom-salary-input .input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.custom-salary-input span {
+    color: #666;
+    font-size: 16px;
+}
+
+.custom-salary-input input {
+    width: 120px;
+}
+
+/* 添加詳細記錄相關樣式 */
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-btn {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.detail-btn:hover {
+    background-color: #45a049;
+}
+
+.detail-modal {
+    max-width: 600px;
+}
+
+.detail-list {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-date {
+    font-weight: 500;
+    color: #333;
+    min-width: 100px;
+}
+
+.detail-time {
+    color: #666;
+    flex: 1;
+    text-align: center;
+}
+
+.detail-salary {
+    color: #4CAF50;
+    font-weight: 500;
+    min-width: 120px;
+    text-align: right;
+}
+
+.detail-break {
+    color: #666;
+    font-size: 14px;
+}
+
+/* 添加導出相關樣式 */
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.export-btn {
+    padding: 8px 16px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.export-btn:hover {
+    background-color: #5a6268;
+}
+
+.export-modal {
+    max-width: 450px;
+}
+
+.export-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.export-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.export-option:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.option-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: 8px;
+}
+
+.option-text {
+    flex: 1;
+}
+
+.option-text h4 {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.option-text p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* 添加休假相關樣式 */
+.shift-type-select {
+    flex: 1;
+}
+
+.shift-type-select select {
+    width: 100%;
+    height: 45px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.shift-type-select select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+/* 休假時間信息樣式 */
+.time-info.off {
+    background-color: #E0E0E0 !important;
+    color: #666;
+} 

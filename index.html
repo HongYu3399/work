@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班表管理系統</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="config.js" type="module"></script>
+    <script src="database.js" type="module"></script>
+    <script src="script.js" type="module"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>班表管理系統</h1>
+        
+        <div class="calendar-controls">
+            <button id="prevMonth">上個月</button>
+            <h2 id="currentMonth"></h2>
+            <button id="nextMonth">下個月</button>
+        </div>
+
+        <div class="calendar">
+            <div class="weekdays">
+                <div>日</div>
+                <div>一</div>
+                <div>二</div>
+                <div>三</div>
+                <div>四</div>
+                <div>五</div>
+                <div>六</div>
+            </div>
+            <div id="calendar-days" class="days">
+                <!-- 日期將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <!-- 在日曆後面添加統計面板 -->
+        <div class="stats-panel">
+            <div class="stats-header">
+                <h2>本月統計</h2>
+                <div class="header-buttons">
+                    <button id="exportBtn" class="export-btn">
+                        <span>導出</span>
+                    </button>
+                    <button id="showDetailBtn" class="detail-btn">
+                        <span>詳細記錄</span>
+                    </button>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <label>時薪設定</label>
+                    <div class="input-group">
+                        <span>NT$</span>
+                        <input type="number" id="hourlyRate" value="160" min="0">
+                    </div>
+                </div>
+                <div class="stats-item">
+                    <label>工作天數</label>
+                    <div class="value" id="workDays">0 天</div>
+                </div>
+                <div class="stats-item">
+                    <label>總工作時數</label>
+                    <div class="value" id="totalHours">0 小時</div>
+                </div>
+                <div class="stats-item">
+                    <label>預估薪資</label>
+                    <div class="value" id="estimatedSalary">NT$ 0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加時間輸入彈窗 -->
+    <div id="timeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>設定工作時間</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="time-input">
+                    <label>班別類型：</label>
+                    <div class="shift-type-select">
+                        <select id="shiftType" class="time-number">
+                            <option value="work">工作</option>
+                            <option value="off">休假</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="workTimeInputs">
+                    <div class="time-input">
+                        <label>上班時間：</label>
+                        <div class="time-spinner">
+                            <input type="number" id="startHour" min="0" max="23" value="9" class="time-number">
+                            <span>:</span>
+                            <select id="startMinute" class="time-number">
+                                <option value="0">00</option>
+                                <option value="30">30</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="time-input">
+                        <label>下班時間：</label>
+                        <div class="time-spinner">
+                            <input type="number" id="endHour" min="0" max="23" value="18" class="time-number">
+                            <span>:</span>
+                            <select id="endMinute" class="time-number">
+                                <option value="0">00</option>
+                                <option value="30">30</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="time-input">
+                        <label>休息時長（分鐘）：</label>
+                        <input type="number" id="breakTime" min="0" step="15" value="60">
+                    </div>
+                    <div class="time-input">
+                        <label>薪資設定：</label>
+                        <div class="salary-setting">
+                            <div class="salary-type">
+                                <select id="salaryType" class="time-number">
+                                    <option value="hourly">依時薪計算</option>
+                                    <option value="custom">自訂薪水</option>
+                                </select>
+                            </div>
+                            <div class="custom-salary-input" style="display: none;">
+                                <div class="input-group">
+                                    <span>NT$</span>
+                                    <input type="number" id="customSalary" class="time-number" placeholder="請輸入金額">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shift-type">
+                        <label>班別顏色：</label>
+                        <div class="color-presets">
+                            <button type="button" class="color-preset" data-color="#FFB7B7" style="background-color: #FFB7B7;"></button>
+                            <button type="button" class="color-preset" data-color="#FFDAB7" style="background-color: #FFDAB7;"></button>
+                            <button type="button" class="color-preset" data-color="#FFE4B7" style="background-color: #FFE4B7;"></button>
+                            <button type="button" class="color-preset" data-color="#FFF0B7" style="background-color: #FFF0B7;"></button>
+                            <button type="button" class="color-preset" data-color="#B7FFD8" style="background-color: #B7FFD8;"></button>
+                            <button type="button" class="color-preset" data-color="#B7FFFF" style="background-color: #B7FFFF;"></button>
+                            <input type="color" id="shiftColor" value="#FFB7B7">
+                        </div>
+                    </div>
+                    <div class="quick-presets">
+                        <div class="quick-presets-header">
+                            <h4>快捷時間</h4>
+                            <button type="button" id="addPresetBtn" class="add-preset-btn">+</button>
+                        </div>
+                        <div class="preset-buttons" id="presetButtons">
+                            <!-- 快捷時間按鈕將由 JavaScript 動態生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteTime" class="delete-btn">刪除</button>
+                <div class="right-buttons">
+                    <button id="saveTime">保存</button>
+                    <button id="cancelTime" class="cancel-btn">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改快捷時間管理模態框 -->
+    <div id="presetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>管理快捷時間</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="time-input">
+                    <label>上班時間：</label>
+                    <div class="time-spinner">
+                        <input type="number" id="presetStartHour" min="0" max="23" value="9" class="time-number">
+                        <span>:</span>
+                        <input type="number" id="presetStartMinute" min="0" max="59" value="0" step="30" class="time-number" readonly>
+                    </div>
+                </div>
+                <div class="time-input">
+                    <label>下班時間：</label>
+                    <div class="time-spinner">
+                        <input type="number" id="presetEndHour" min="0" max="23" value="18" class="time-number">
+                        <span>:</span>
+                        <input type="number" id="presetEndMinute" min="0" max="59" value="0" step="30" class="time-number" readonly>
+                    </div>
+                </div>
+                <div class="time-input">
+                    <label>休息時長（分鐘）：</label>
+                    <input type="number" id="presetBreakTime" min="0" step="15" value="60" class="time-number">
+                </div>
+                <div class="shift-type">
+                    <label>班別顏色：</label>
+                    <div class="color-presets">
+                        <button type="button" class="color-preset" data-color="#FFB7B7" style="background-color: #FFB7B7;"></button>
+                        <button type="button" class="color-preset" data-color="#FFDAB7" style="background-color: #FFDAB7;"></button>
+                        <button type="button" class="color-preset" data-color="#FFE4B7" style="background-color: #FFE4B7;"></button>
+                        <button type="button" class="color-preset" data-color="#FFF0B7" style="background-color: #FFF0B7;"></button>
+                        <button type="button" class="color-preset" data-color="#B7FFD8" style="background-color: #B7FFD8;"></button>
+                        <button type="button" class="color-preset" data-color="#B7FFFF" style="background-color: #B7FFFF;"></button>
+                        <input type="color" id="presetColor" value="#FFB7B7">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="savePreset">保存</button>
+                <button id="cancelPreset" class="cancel-btn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加詳細記錄模態框 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content detail-modal">
+            <div class="modal-header">
+                <h3>詳細工作記錄</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-list">
+                    <!-- 記錄將由 JavaScript 動態生成 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeDetail" class="cancel-btn">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加導出選項模態框 -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content export-modal">
+            <div class="modal-header">
+                <h3>導出選項</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <button class="export-option" data-type="salary">
+                        <div class="option-icon">💰</div>
+                        <div class="option-text">
+                            <h4>薪資明細</h4>
+                            <p>導出詳細的薪資計算表</p>
+                        </div>
+                    </button>
+                    <button class="export-option" data-type="hours">
+                        <div class="option-icon">⏰</div>
+                        <div class="option-text">
+                            <h4>工時明細</h4>
+                            <p>導出每日工作時數統計</p>
+                        </div>
+                    </button>
+                    <button class="export-option" data-type="calendar">
+                        <div class="option-icon">📅</div>
+                        <div class="option-text">
+                            <h4>工作日曆</h4>
+                            <p>將當月班表存為圖片</p>
+                        </div>
+                    </button>
+                    <button class="export-option" data-type="csv">
+                        <div class="option-icon">📊</div>
+                        <div class="option-text">
+                            <h4>完整資料</h4>
+                            <p>匯出所有資料為 CSV 檔案</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
